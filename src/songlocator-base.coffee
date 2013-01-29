@@ -130,4 +130,5 @@ class BaseResolver
       console.log results.results
     this.resolve(qid, track, artist, album)
 
-extend exports, {extend, urlencode, xhrGET, uniqueId, BaseResolver}
+if exports?
+  extend exports, {extend, urlencode, xhrGET, uniqueId, BaseResolver}
