@@ -130,5 +130,9 @@ class BaseResolver
       console.log results.results
     this.resolve(qid, track, artist, album)
 
-if exports?
-  extend exports, {extend, urlencode, xhrGET, uniqueId, BaseResolver}
+
+if window?
+  window.SongLocator = window.SongLocator or {}
+  extend(window.SongLocator, exports)
+
+exports = {extend, urlencode, xhrGET, uniqueId, BaseResolver}
