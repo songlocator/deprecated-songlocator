@@ -68,7 +68,7 @@ class Resolver extends BaseResolver
       result.duration = item.duration
       result.score = if parsedTrack.isOfficial? then 0.85 else 0.95
       result.year = item.uploaded.slice(0,4)
-      result.url = item.player['default']
+      result.url = undefined # we cannot know the direct link to the audio stream
       result.query = query
       result.artist = parsedTrack.artist
       result.track = parsedTrack.track
