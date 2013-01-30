@@ -1,6 +1,6 @@
 SRC = $(shell find src -name '*.coffee')
 LIB = $(SRC:src/%.coffee=lib/%.js)
-AMD = $(LIB:%.js=%.amd.js)
+AMD = $(LIB:lib/%.js=lib/amd/%.js)
 
 all: lib amd
 
@@ -18,8 +18,9 @@ lib/%.js: src/%.coffee
 	@mkdir -p $(@D)
 	@coffee -bcp $< > $@
 
-%.amd.js: %.js
+lib/amd/%.js: lib/%.js
 	@echo `date "+%H:%M:%S"` - AMD compiled $<
+	@mkdir -p $(@D)
 	@echo 'define(function(require, exports, module) {' > $@
 	@cat $< >> $@
 	@echo '});' >> $@
