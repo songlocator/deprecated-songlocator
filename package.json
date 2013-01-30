@@ -1,0 +1,10 @@
+{
+  "name": "songlocator",
+  "description": "SongLocator architecture",
+  "tags": ["api", "music", "streaming", "audio"],
+  "version": "0.1.0",
+  "author": "Andrey Popp <8mayday@gmail.com>",
+  "dependencies": {
+    "xmlhttprequest": ""
+  }
+}
