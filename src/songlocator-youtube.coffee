@@ -12,7 +12,7 @@ regexIndexOf = (s, regex, startpos) ->
   indexOf = s.substring(startpos || 0).search(regex)
   return if indexOf >= 0 then indexOf + (startpos || 0) else indexOf
 
-class exports.Resolver extends BaseResolver
+class Resolver extends BaseResolver
   name: 'youtube'
 
   search: (qid, query) ->
@@ -186,3 +186,11 @@ class exports.Resolver extends BaseResolver
 
     else
       return trackTitle
+
+if window?
+  if not window.SongLocator?
+    throw new Error('no songlocator-base module was loaded')
+  window.SongLocator.YouTube = {}
+  extend(window.SongLocator.YouTube, exports)
+
+exports = {Resolver}
