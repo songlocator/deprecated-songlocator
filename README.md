@@ -1,1 +1,2 @@
-SongLocator base class for creating resolvers.
+SongLocator is an architecture for resolving song names to audio streams
+inspired by Playdar.
