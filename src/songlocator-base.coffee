@@ -8,6 +8,9 @@
 
 XMLHttpRequest = XMLHttpRequest or require('xmlhttprequest').XMLHttpRequest
 
+isArray = Array.isArray or (obj) ->
+  toString.call(obj) == '[object Array]'
+
 urlencode = (params) ->
   params = for k, v of params
     "#{k}=#{encodeURIComponent(v.toString())}"
@@ -94,29 +97,13 @@ EventEmitter.removeEventListener = EventEmitter.off
 
 EventEmitter.trigger = EventEmitter.emit
 
-class BaseResolver
-  extend this.prototype, EventEmitter
+class Module
 
-  name: undefined
+  @include: (mixins...) ->
+    for mixin in mixins
+      extend(this.prototype, mixin)
 
-  options:
-    includeRemixes: true
-    includeCovers: true
-    includeLive: true
-
-  constructor: (options) ->
-    this.options = extend({}, this.options, options)
-
-  request: (opts) ->
-    xhrGET(opts)
-
-  search: (qid, query) ->
-
-  resolve: (qid, track, artist, album) ->
-
-  results: (qid, results) ->
-    if results?.length? and results.length > 0
-      this.emit('results', {qid: qid, results: results or []})
+ResolverShortcuts = 
 
   searchDebug: (query) ->
     qid = uniqueId('query')
@@ -130,9 +117,55 @@ class BaseResolver
       console.log results.results
     this.resolve(qid, track, artist, album)
 
+class BaseResolver extends Module
+  @include EventEmitter, ResolverShortcuts
+
+  name: undefined
+
+  options:
+    includeRemixes: true
+    includeCovers: true
+    includeLive: true
+
+  constructor: (options = {}) ->
+    this.options = extend({}, this.options, options)
+
+  request: (opts) ->
+    xhrGET(opts)
+
+  search: (qid, query) ->
+
+  resolve: (qid, track, artist, album) ->
+
+  results: (qid, results) ->
+    if results?.length? and results.length > 0
+      this.emit('results', {qid: qid, results: results})
+
+class ResolverSet extends Module
+  @include EventEmitter, ResolverShortcuts
+
+  constructor: (resolvers...) ->
+    this.resolvers = if resolvers.length and isArray(resolvers)
+      resolvers[0]
+    else
+      resolvers
+
+    for resolver in this.resolvers
+      resolver.on 'results', (results) =>
+        this.emit('results', results)
+
+  search: (qid, query) ->
+    for resolver in this.resolvers
+      resolver.search(qid, query)
+
+  resolve: (qid, track, artist, album) ->
+    for resolver in this.resolvers
+      resolver.resolve(qid, track, artist, album)
+
+extend exports, {
+  extend, urlencode, xhrGET, uniqueId, isArray,
+  BaseResolver, ResolverSet, Module}
 
 if window?
   window.SongLocator = window.SongLocator or {}
   extend(window.SongLocator, exports)
-
-exports = {extend, urlencode, xhrGET, uniqueId, BaseResolver}

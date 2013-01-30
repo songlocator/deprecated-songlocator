@@ -25,7 +25,7 @@
 
 ###
 
-{BaseResolver} = require './songlocator-base'
+{BaseResolver, extend} = require './songlocator-base'
 
 regexIndexOf = (s, regex, startpos) ->
   indexOf = s.substring(startpos || 0).search(regex)
@@ -206,10 +206,10 @@ class Resolver extends BaseResolver
     else
       return trackTitle
 
+extend exports, {Resolver}
+
 if window?
   if not window.SongLocator?
     throw new Error('no songlocator-base module was loaded')
   window.SongLocator.YouTube = {}
   extend(window.SongLocator.YouTube, exports)
-
-exports = {Resolver}
