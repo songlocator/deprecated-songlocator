@@ -4,7 +4,6 @@
   "description": "SongLocator architecture",
   "tags": ["api", "music", "streaming", "audio"],
   "author": "Andrey Popp <8mayday@gmail.com>",
-  "dependencies": {
-    "xmlhttprequest": ""
-  }
+  "main": ["./lib/songlocator-base.js", "./lib/songlocator-youtube.js"],
+  "dependencies": {}
 }
