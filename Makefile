@@ -11,7 +11,7 @@ lib: $(LIB)
 amd: lib $(AMD)
 
 watch:
-	coffee -bc --watch .
+	watch -n 1 $(MAKE) all
 
 lib/%.js: src/%.coffee
 	@echo `date "+%H:%M:%S"` - compiled $<

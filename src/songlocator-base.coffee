@@ -110,12 +110,14 @@ ResolverShortcuts =
     this.once 'results', (results) ->
       console.log results.results
     this.search(qid, query)
+    return
 
   resolveDebug: (track, artist, album) ->
     qid = uniqueId('resolve')
     this.once 'results', (results) ->
       console.log results.results
     this.resolve(qid, track, artist, album)
+    return
 
 class BaseResolver extends Module
   @include EventEmitter, ResolverShortcuts
@@ -145,10 +147,7 @@ class ResolverSet extends Module
   @include EventEmitter, ResolverShortcuts
 
   constructor: (resolvers...) ->
-    this.resolvers = if resolvers.length and isArray(resolvers)
-      resolvers[0]
-    else
-      resolvers
+    this.resolvers = if isArray(resolvers[0]) then resolvers[0] else resolvers
 
     for resolver in this.resolvers
       resolver.on 'results', (results) =>
