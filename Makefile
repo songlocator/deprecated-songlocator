@@ -4,9 +4,6 @@ AMD = $(LIB:lib/%.js=lib/amd/%.js)
 
 all: lib amd
 
-run: all
-	@./bin/songlocator
-
 lib: $(LIB)
 amd: lib $(AMD)
 
