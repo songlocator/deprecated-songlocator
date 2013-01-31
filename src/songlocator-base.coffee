@@ -136,8 +136,11 @@ class BaseResolver extends Module
     xhrGET(opts)
 
   search: (qid, query) ->
+    throw new Error('not implemented')
 
   resolve: (qid, track, artist, album) ->
+    query = (artist or '') + (track or '')
+    this.search(qid, query.trim())
 
   results: (qid, results) ->
     if results?.length? and results.length > 0
