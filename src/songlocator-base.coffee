@@ -7,6 +7,7 @@
 ###
 
 XMLHttpRequest = XMLHttpRequest or require('xmlhttprequest').XMLHttpRequest
+{abs, pow} = Math
 
 isArray = Array.isArray or (obj) ->
   toString.call(obj) == '[object Array]'
@@ -164,8 +165,71 @@ class ResolverSet extends Module
     for resolver in this.resolvers
       resolver.resolve(qid, track, artist, album)
 
+tokenNormalizeRe = /[^a-z0-9 ]+/g
+spaceNormalizeRe = /[ \t\n]+/g
+
+ngrams = (toks, rank = 2) ->
+  buf = []
+  for tok in toks
+    buf.push(tok)
+    continue unless buf.length == rank
+    ng = buf.join(' ')
+    buf.shift()
+    ng
+
+tokenize = (str, ngram = 1) ->
+  str
+    .toLowerCase()
+    .replace(tokenNormalizeRe, ' ')
+    .replace(spaceNormalizeRe, ' ')
+    .split(' ')
+    .filter (tok) -> tok and tok.length > 1
+
+bagOfWords = (toks) ->
+  v = {}
+  for tok in toks
+    if v[tok] then v[tok] += 1 else v[tok] = 1
+  v
+
+computeTensor = (str, ngramDim = 1) ->
+  toks = tokenize(str)
+  tensor = for ngramRank in [1..ngramDim]
+    bagOfWords(if ngramRank == 1 then toks else ngrams(toks, ngramRank))
+  tensor
+
+normBagOfWords = (v1, v2) ->
+  keys = (k for k of extend({}, v1, v2))
+  ws = for k in keys
+    x1 = v1[k] or 0
+    x2 = v2[k] or 0
+    abs(x1 - x2)
+
+  ret = sumArray(ws)
+  ret
+
+sumArray = (ws) ->
+  n = 0
+  for w in ws
+    n += w
+  n
+
+norm = (t1, t2) ->
+  throw new Error('invalid dimensions') unless t1.length == t2.length
+  ws = for a, idx in t1
+    b = t2[idx]
+    normBagOfWords(a, b) * pow(100, idx)
+  ret = sumArray(ws)
+  ret
+
+rankSearchResult = (items, query, ngramRank) ->
+  queryT = computeTensor(query, ngramRank)
+  items = items.slice().sort (a, b) ->
+    norm(computeTensor(a, ngramRank), queryT) - norm(computeTensor(b, ngramRank), queryT)
+  items
+
 extend exports, {
   extend, urlencode, xhrGET, uniqueId, isArray,
+  rankSearchResult,
   BaseResolver, ResolverSet, Module}
 
 if window?
