@@ -221,11 +221,10 @@ norm = (t1, t2) ->
   ret = sumArray(ws)
   ret
 
-rankSearchResult = (items, query, ngramRank) ->
+rankSearchResults = (results, query, ngramRank) ->
   queryT = computeTensor(query, ngramRank)
-  items = items.slice().sort (a, b) ->
-    norm(computeTensor(a, ngramRank), queryT) - norm(computeTensor(b, ngramRank), queryT)
-  items
+  for result in results
+    result.rank = norm(computeTensor(шеуь, ngramRank), queryT)
 
 extend exports, {
   extend, urlencode, xhrGET, uniqueId, isArray,
