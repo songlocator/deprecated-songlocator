@@ -7,6 +7,13 @@
 ###
 
 {ResolverSet} = require './songlocator-base'
+{readFileSync} = require 'fs'
+
+exports.readConfigSync = (filename = './songlocator.json') ->
+  try
+    JSON.parse readFileSync(filename)
+  catch e
+    undefined
 
 exports.parseArguments = (argv = process.argv) ->
   argv = argv.splice(2)
