@@ -228,7 +228,7 @@ rankSearchResults = (results, query, ngramRank) ->
 
 extend exports, {
   extend, urlencode, xhrGET, uniqueId, isArray,
-  rankSearchResult,
+  rankSearchResults,
   BaseResolver, ResolverSet, Module}
 
 if window?
