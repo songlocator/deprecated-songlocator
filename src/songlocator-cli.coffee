@@ -55,7 +55,7 @@ exports.main = ->
     process.exit(1)
 
   config =
-    youtube: {}
+    soundcloud: {}
 
   resolvers = for name, cfg of config
     Resolver = require("./songlocator-#{name}").Resolver

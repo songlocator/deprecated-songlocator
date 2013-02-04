@@ -20,6 +20,7 @@ urlencode = (params) ->
 xhrGET = (options) ->
   {url, params, callback, rawResponse} = options
   url = "#{url}?#{urlencode(params)}"
+  console.log url
 
   request = new XMLHttpRequest()
   request.open('GET', url, true)
@@ -129,6 +130,7 @@ class BaseResolver extends Module
     includeRemixes: true
     includeCovers: true
     includeLive: true
+    searchMaxResults: 10
 
   constructor: (options = {}) ->
     this.options = extend({}, this.options, options)

@@ -36,7 +36,7 @@ class Resolver extends BaseResolver
 
   search: (qid, query) ->
     url = 'http://gdata.youtube.com/feeds/api/videos/'
-    params = {alt: 'jsonc', q: query, 'max-results': 10, v: 2}
+    params = {alt: 'jsonc', q: query, 'max-results': this.options.searchMaxResults, v: 2}
     this.request
       url: url
       params: params
