@@ -220,9 +220,9 @@ damerauLevenshtein = (prices, damerau = true) ->
       ds = []
 
       down = if isArray(down) then down.slice() else down.split('')
-      down.unshift(null)
+      down.unshift(0)
       across = if isArray(across) then across.slice() else across.split('')
-      across.unshift(null)
+      across.unshift(0)
 
       for d, i in down
         if not ds[i]
