@@ -171,11 +171,14 @@ class ResolverSet extends Module
 tokenNormalizeRe = /[^a-z0-9 ]+/g
 spaceNormalizeRe = /[ \t\n]+/g
 
-tokenize = (str, ngram = 1) ->
+normalize = (str) ->
   str
     .toLowerCase()
     .replace(tokenNormalizeRe, ' ')
     .replace(spaceNormalizeRe, ' ')
+
+tokenize = (str) ->
+  normalize(str)
     .split(' ')
     .filter (tok) -> tok and tok.length > 1
 
@@ -274,16 +277,16 @@ damerauLevenshtein = (prices, damerau = true) ->
 
       ds[down.length-1][across.length-1]
 
-rankSearchResults = (results, query) ->
-  qTokens = tokenize(query.toLowerCase())
-  distance = damerauLevenshtein()
+rankSearchResults = (results, query, d = {tokenize: tokenize, distanceGen: damerauLevenshtein}) ->
+  qTokens = d.tokenize(query)
+  distance = d.distanceGen()
 
   for result in results
     rank1 = distance(
-      tokenize("#{result.artist} #{result.track}".toLowerCase()),
+      d.tokenize("#{result.artist} #{result.track}"),
       qTokens)
     rank2 = distance(
-      tokenize("#{result.track} #{result.artist}".toLowerCase()),
+      d.tokenize("#{result.track} #{result.artist}"),
       qTokens)
     result.rank = min(rank1, rank2)
 
