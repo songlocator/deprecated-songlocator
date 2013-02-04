@@ -55,6 +55,8 @@ exports.main = ->
     process.exit(1)
 
   config =
+    exfm: {}
+    youtube: {}
     soundcloud: {}
 
   resolvers = for name, cfg of config
