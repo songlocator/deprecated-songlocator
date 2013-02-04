@@ -7,7 +7,7 @@
 ###
 
 XMLHttpRequest = XMLHttpRequest or require('xmlhttprequest').XMLHttpRequest
-{abs, pow} = Math
+{abs, pow, min} = Math
 
 isArray = Array.isArray or (obj) ->
   toString.call(obj) == '[object Array]'
@@ -104,7 +104,7 @@ class Module
     for mixin in mixins
       extend(this.prototype, mixin)
 
-ResolverShortcuts = 
+ResolverShortcuts =
 
   searchDebug: (query) ->
     qid = uniqueId('query')
@@ -155,7 +155,10 @@ class ResolverSet extends Module
 
     for resolver in this.resolvers
       resolver.on 'results', (results) =>
-        this.emit('results', results)
+        this.onResults(results)
+
+  onResults: (results) ->
+    this.emit('results', results)
 
   search: (qid, query) ->
     for resolver in this.resolvers
@@ -168,15 +171,6 @@ class ResolverSet extends Module
 tokenNormalizeRe = /[^a-z0-9 ]+/g
 spaceNormalizeRe = /[ \t\n]+/g
 
-ngrams = (toks, rank = 2) ->
-  buf = []
-  for tok in toks
-    buf.push(tok)
-    continue unless buf.length == rank
-    ng = buf.join(' ')
-    buf.shift()
-    ng
-
 tokenize = (str, ngram = 1) ->
   str
     .toLowerCase()
@@ -185,50 +179,114 @@ tokenize = (str, ngram = 1) ->
     .split(' ')
     .filter (tok) -> tok and tok.length > 1
 
-bagOfWords = (toks) ->
-  v = {}
-  for tok in toks
-    if v[tok] then v[tok] += 1 else v[tok] = 1
-  v
+###
 
-computeTensor = (str, ngramDim = 1) ->
-  toks = tokenize(str)
-  tensor = for ngramRank in [1..ngramDim]
-    bagOfWords(if ngramRank == 1 then toks else ngrams(toks, ngramRank))
-  tensor
+  Generate a function to compute Damerau-Levenshtein distance.
 
-normBagOfWords = (v1, v2) ->
-  keys = (k for k of extend({}, v1, v2))
-  ws = for k in keys
-    x1 = v1[k] or 0
-    x2 = v2[k] or 0
-    abs(x1 - x2)
+  'prices' customisation of the edit costs by passing an
+  object with optional 'insert', 'remove', 'substitute', and
+  'transpose' keys, corresponding to either a constant
+  number, or a function that returns the cost. The default
+  cost for each operation is 1. The price functions take
+  relevant character(s) as arguments, should return numbers.
 
-  ret = sumArray(ws)
-  ret
+  The damerau flag allows us to turn off transposition and
+  only do plain Levenshtein distance.
 
-sumArray = (ws) ->
-  n = 0
-  for w in ws
-    n += w
-  n
+  Credits goes to https://github.com/cbaatz/damerau-levenshtein
+###
+damerauLevenshtein = (prices, damerau = true) ->
 
-norm = (t1, t2) ->
-  throw new Error('invalid dimensions') unless t1.length == t2.length
-  ws = for a, idx in t1
-    b = t2[idx]
-    normBagOfWords(a, b) * pow(100, idx)
-  ret = sumArray(ws)
-  ret
+    prices = prices or {}
 
-rankSearchResults = (results, query, ngramRank) ->
-  queryT = computeTensor(query, ngramRank)
+    genPriceGetter = (value, defaultPrice = 1) ->
+      insert = switch (typeof value)
+        when 'function' then value
+        when 'number' then -> value
+        else -> defaultPrice
+
+    insert = genPriceGetter(prices.insert, 1)
+    remove = genPriceGetter(prices.remove, 1)
+    substitute = genPriceGetter(prices.substitute, 0.5)
+    transpose = genPriceGetter(prices.transpose, 0.2)
+
+    (down, across) ->
+      # http:#en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance
+      return 0 if down == across
+
+      ds = []
+
+      down = if isArray(down) then down.slice() else down.split('')
+      down.unshift(null)
+      across = if isArray(across) then across.slice() else across.split('')
+      across.unshift(null)
+
+      for d, i in down
+        if not ds[i]
+          ds[i] = []
+
+        for a, j in across
+          if i == 0 and j == 0
+            ds[i][j] = 0
+
+          else if i == 0
+            # Empty down (i == 0) -> across[1..j] by inserting
+            ds[i][j] = ds[i][j-1] + insert(a)
+
+          else if j == 0
+            # Down -> empty across (j == 0) by deleting
+            ds[i][j] = ds[i-1][j] + remove(d)
+
+          else
+            # Find the least costly operation that turns
+            # the prefix down[1..i] into the prefix
+            # across[1..j] using already calculated costs
+            # for getting to shorter matches.
+            ds[i][j] = min(
+              # Cost of editing down[1..i-1] to
+              # across[1..j] plus cost of deleting
+              # down[i] to get to down[1..i-1].
+              ds[i-1][j] + remove(d),
+              # Cost of editing down[1..i] to
+              # across[1..j-1] plus cost of inserting
+              # across[j] to get to across[1..j].
+              ds[i][j-1] + insert(a),
+              # Cost of editing down[1..i-1] to
+              # across[1..j-1] plus cost of
+              # substituting down[i] (d) with across[j]
+              # (a) to get to across[1..j].
+              ds[i-1][j-1] + (if d == a then 0 else substitute(d, a))
+            )
+
+            # Can we match the last two letters of down
+            # with across by transposing them? Cost of
+            # getting from down[i-2] to across[j-2] plus
+            # cost of moving down[i-1] forward and
+            # down[i] backward to match across[j-1..j].
+            if damerau and i > 1 and j > 1 and down[i-1] == a and d == across[j-1]
+              ds[i][j] = min(
+                ds[i][j],
+                ds[i-2][j-2] + (if d == a then 0 else transpose(d, down[i-1]))
+              )
+
+      ds[down.length-1][across.length-1]
+
+rankSearchResults = (results, query) ->
+  qTokens = tokenize(query.toLowerCase())
+  distance = damerauLevenshtein()
+
   for result in results
-    result.rank = norm(computeTensor(шеуь, ngramRank), queryT)
+    rank1 = distance(
+      tokenize("#{result.artist} #{result.track}".toLowerCase()),
+      qTokens)
+    rank2 = distance(
+      tokenize("#{result.track} #{result.artist}".toLowerCase()),
+      qTokens)
+    result.rank = min(rank1, rank2)
 
 extend exports, {
   extend, urlencode, xhrGET, uniqueId, isArray,
-  rankSearchResults,
+  rankSearchResults, damerauLevenshtein,
   BaseResolver, ResolverSet, Module}
 
 if window?

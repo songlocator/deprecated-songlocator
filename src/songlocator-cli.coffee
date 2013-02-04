@@ -6,7 +6,7 @@
 
 ###
 
-{ResolverSet} = require './songlocator-base'
+{ResolverSet, rankSearchResults} = require './songlocator-base'
 {readFileSync} = require 'fs'
 
 exports.readConfigSync = (filename = './songlocator.json') ->
@@ -36,6 +36,15 @@ exports.parseArguments = (argv = process.argv) ->
 
   {args, opts}
 
+class MyResolverSet extends ResolverSet
+
+  onResults: (results) ->
+    return unless results.results.length > 0
+
+    rankSearchResults(results.results, results.results[0].query)
+
+    for result in results.results
+      console.log result.track, result.artist, result.rank
 
 exports.main = ->
 
@@ -52,5 +61,5 @@ exports.main = ->
     Resolver = require("./songlocator-#{name}").Resolver
     new Resolver(cfg)
 
-  resolver = new ResolverSet(resolvers)
-  resolver.searchDebug(query)
+  resolver = new MyResolverSet(resolvers)
+  resolver.search('1', query)
