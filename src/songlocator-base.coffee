@@ -181,7 +181,7 @@ tokenize = (str, ngram = 1) ->
 
 ###
 
-  Generate a function to compute Damerau-Levenshtein distance.
+  Generate a function to compute a Damerau-Levenshtein distance.
 
   'prices' customisation of the edit costs by passing an
   object with optional 'insert', 'remove', 'substitute', and
@@ -193,7 +193,11 @@ tokenize = (str, ngram = 1) ->
   The damerau flag allows us to turn off transposition and
   only do plain Levenshtein distance.
 
-  Credits goes to https://github.com/cbaatz/damerau-levenshtein
+  Credits goes to http://en.wikipedia.org/wiki/Damerau-Levenshtein_distance
+  and Carl Baatz (https://github.com/cbaatz/damerau-levenshtein)
+
+  Licensed under UNLICENSE (http://unlicense.org)
+
 ###
 damerauLevenshtein = (prices, damerau = true) ->
 
@@ -211,7 +215,6 @@ damerauLevenshtein = (prices, damerau = true) ->
     transpose = genPriceGetter(prices.transpose, 0.2)
 
     (down, across) ->
-      # http:#en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance
       return 0 if down == across
 
       ds = []
