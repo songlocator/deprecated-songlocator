@@ -9,7 +9,7 @@
   2011 (c) Lasconic <lasconic@gmail.com>
 
 ###
-#
+
 {BaseResolver, extend} = require './songlocator-base'
 
 class Resolver extends BaseResolver
