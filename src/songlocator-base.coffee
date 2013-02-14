@@ -306,7 +306,9 @@ damerauLevenshtein = (prices, damerau = true) ->
 
       ds[down.length-1][across.length-1]
 
-rankSearchResults = (results, query, d = {tokenize: tokenize, distanceGen: damerauLevenshtein}) ->
+rankSearchResults = (results, query, d = {
+    tokenize: tokenize,
+    distanceGen: damerauLevenshtein}) ->
   qTokens = d.tokenize(query)
   distance = d.distanceGen()
 
