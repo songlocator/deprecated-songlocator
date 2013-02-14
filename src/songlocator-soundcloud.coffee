@@ -24,14 +24,23 @@ class Resolver extends BaseResolver
   options: extend {consumerKey: 'TiNg2DRYhBnp01DA3zNag'}, BaseResolver::options
 
   getTrack: (found, orig) ->
-    if not this.options.includeCovers and found.search(/cover/i) != -1 and orig.search(/cover/i) == -1
+    if not this.options.includeCovers \
+        and found.search(/cover/i) != -1 \
+        and orig.search(/cover/i) == -1
       null
-    else if not this.options.includeRemixes and found.search(/(re)*mix/i) != -1 and orig.search(/(re)*mix/i) == -1
+    else if not this.options.includeRemixes \
+        and found.search(/(re)*mix/i) != -1 \
+        and orig.search(/(re)*mix/i) == -1
       null
-    else if not this.options.includeLive and found.search(/live/i) != -1 and orig.search(/live/i) == -1
+    else if not this.options.includeLive \
+        and found.search(/live/i) != -1 \
+        and orig.search(/live/i) == -1
       null
     else
       found
+
+  betterArtwork: (url) ->
+    url.replace('-large', '-t500x500')
 
   resolve: (qid, track, artist, album) ->
     query = "#{artist} #{track}".trim()
@@ -59,19 +68,23 @@ class Resolver extends BaseResolver
           continue unless this.getTrack(r.title, track)
 
           result =
+            title: track
             artist: artist
-            track: track
+            album: undefined
+
             source: this.name
+            id: r.id
+
+            linkURL: r.permalink_url
+            imageURL: this.betterArtwork(r.artwork_url)
+            audioURL: "#{r.stream_url}.json?client_id=#{this.options.consumerKey}"
+            audioPreviewURL: undefined
+
             mimetype: "audio/mpeg"
-            bitrate: 128
             duration: r.duration / 1000
-            score: 0.85
-            year: r.release_year
-            url: "#{r.stream_url}.json?client_id=#{this.options.consumerKey}"
-            linkUrl: r.permalink_url
 
         this.results(qid, [results[0]])
-  
+
   search: (qid, searchString) ->
     this.request
       url: 'http://api.soundcloud.com/tracks.json'
@@ -89,38 +102,47 @@ class Resolver extends BaseResolver
           continue unless this.getTrack(r.title, '')
 
           result =
+            album: undefined
+
             source: this.name
-            query: searchString
+            id: r.id
+
+            linkURL: r.permalink_url
+            imageURL: this.betterArtwork(r.artwork_url)
+            audioURL: "#{r.stream_url}.json?client_id=#{this.options.consumerKey}"
+            audioPreviewURL: undefined
+
             mimetype: 'audio/mpeg'
-            bitrate: 128
             duration: r.duration / 1000
-            score: 0.85
-            year: r.release_year
-            url: "#{r.stream_url}.json?client_id=#{this.options.consumerKey}"
-            linkUrl: r.permalink_url
 
           track = r.title
-          if track.indexOf(" - ") != -1 and track.slice(track.indexOf(" - ") + 3).trim() != ""
-            result.track = track.slice(track.indexOf(" - ") + 3).trim()
+          if track.indexOf(" - ") != -1 \
+              and track.slice(track.indexOf(" - ") + 3).trim() != ""
+            result.title = track.slice(track.indexOf(" - ") + 3).trim()
             result.artist = track.slice(0, track.indexOf(" - ")).trim()
-          else if track.indexOf(" -") != -1 and track.slice(track.indexOf(" -") + 2).trim() != ""
-            result.track = track.slice(track.indexOf(" -") + 2).trim()
+          else if track.indexOf(" -") != -1 \
+              and track.slice(track.indexOf(" -") + 2).trim() != ""
+            result.title = track.slice(track.indexOf(" -") + 2).trim()
             result.artist = track.slice(0, track.indexOf(" -")).trim()
-          else if track.indexOf(": ") != -1 and track.slice(track.indexOf(": ") + 2).trim() != ""
-            result.track = track.slice(track.indexOf(": ") + 2).trim()
+          else if track.indexOf(": ") != -1 \
+              and track.slice(track.indexOf(": ") + 2).trim() != ""
+            result.title = track.slice(track.indexOf(": ") + 2).trim()
             result.artist = track.slice(0, track.indexOf(": ")).trim()
-          else if track.indexOf("-") != -1 and track.slice(track.indexOf("-") + 1).trim() != ""
-            result.track = track.slice(track.indexOf("-") + 1).trim()
+          else if track.indexOf("-") != -1 \
+              and track.slice(track.indexOf("-") + 1).trim() != ""
+            result.title = track.slice(track.indexOf("-") + 1).trim()
             result.artist = track.slice(0, track.indexOf("-")).trim()
-          else if track.indexOf(":") != -1 and track.slice(track.indexOf(":") + 1).trim() != ""
-            result.track = track.slice(track.indexOf(":") + 1).trim()
+          else if track.indexOf(":") != -1 \
+              and track.slice(track.indexOf(":") + 1).trim() != ""
+            result.title = track.slice(track.indexOf(":") + 1).trim()
             result.artist = track.slice(0, track.indexOf(":")).trim()
-          else if track.indexOf("\u2014") != -1 and track.slice(track.indexOf("\u2014") + 2).trim() != ""
-            result.track = track.slice(track.indexOf("\u2014") + 2).trim()
+          else if track.indexOf("\u2014") != -1 \
+              and track.slice(track.indexOf("\u2014") + 2).trim() != ""
+            result.title = track.slice(track.indexOf("\u2014") + 2).trim()
             result.artist = track.slice(0, track.indexOf("\u2014")).trim()
           else if r.title != "" and r.user.username != ""
             # Last resort, the artist is the username
-            result.track = r.title
+            result.title = r.title
             result.artist = r.user.username
           else
             continue
