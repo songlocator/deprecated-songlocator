@@ -17,6 +17,30 @@ urlencode = (params) ->
     "#{k}=#{encodeURIComponent(v.toString())}"
   params.join('&')
 
+xhrPOST = (options) ->
+  {url, params, callback, rawResponse} = options
+  params = urlencode(params)
+  request = new XMLHttpRequest()
+  request.open('POST', url, true)
+  request.addEventListener 'readystatechange', ->
+    if request.readyState == 0
+      request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
+      request.setRequestHeader('Content-length', params.length)
+      request.setRequestHeader('Connection', 'close')
+    else if request.readyState == 4
+      console.log url, request.status, params
+      if request.status == 200
+        data = if rawResponse
+          request.responseText
+        else
+          JSON.parse(request.responseText)
+
+        callback(undefined, data)
+      else
+        callback(request, undefined)
+
+  request.send(params)
+
 xhrGET = (options) ->
   {url, params, callback, rawResponse} = options
   url = "#{url}?#{urlencode(params)}"
@@ -135,7 +159,11 @@ class BaseResolver extends Module
     this.options = extend({}, this.options, options)
 
   request: (opts) ->
-    xhrGET(opts)
+    {method} = opts
+    switch (method or 'GET')
+      when 'GET' then xhrGET(opts)
+      when 'POST' then xhrPOST(opts)
+      else throw new Error("unsupported XHR method #{method}")
 
   search: (qid, query) ->
     throw new Error('not implemented')
