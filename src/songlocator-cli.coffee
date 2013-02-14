@@ -53,7 +53,7 @@ exports.main = ->
     process.exit(1)
 
   config =
-    exfm: {}
+    deezer: {}
 
   resolvers = for name, cfg of config
     Resolver = require("./songlocator-#{name}").Resolver

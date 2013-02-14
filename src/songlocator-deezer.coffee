@@ -22,13 +22,22 @@ class Resolver extends BaseResolver
 
         results = for item in response.data
           {
-            artist: item.artist.name
-            album: item.album.name
-            track: item.title
-            linkUrl: item.link
+            title: item.title
+            artist: item.artist?.name
+            album: item.album?.title
+
+            source: this.name
+            id: item.id
+
+            linkURL: item.link
+            imageURL: "#{item.album?.cover}?size=big"
+            audioURL: undefined
+            audioPreviewURL: item.preview
+
+            mimetype: 'audio/mpeg'
             duration: item.duration
-            score: this.score
           }
+        results = results.slice(0, this.options.searchMaxResults)
         this.results(qid, results)
 
 extend exports, {Resolver}
