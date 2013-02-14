@@ -49,8 +49,8 @@ class Resolver extends BaseResolver
           result
         this.results(qid, results)
 
-  resolve: (qid, song, artist, album) ->
-    query = [artist or '', song or ''].join(' ').trim()
+  resolve: (qid, title, artist, album) ->
+    query = [artist or '', title or ''].join(' ').trim()
     this.search(qid, query)
 
   item2result: (item, query) ->
@@ -61,20 +61,24 @@ class Resolver extends BaseResolver
 
     return if not parsedTrack or not parsedTrack.artist?
 
-    if this.getTrack(item.title, query, true)
-      result = {}
-      result.source = this.name
-      result.mimetype = "video/h264"
-      result.duration = item.duration
-      result.score = if parsedTrack.isOfficial? then 0.85 else 0.95
-      result.year = item.uploaded.slice(0,4)
-      result.url = undefined # we cannot know the direct link to the audio stream
-      result.query = query
-      result.artist = parsedTrack.artist
-      result.track = parsedTrack.track
-      result.linkUrl = item.player['default'] + '&hd=1'
+    return unless this.getTrack(item.title, query, true)
 
-    result
+    {
+      title: parsedTrack.track
+      artist: parsedTrack.artist
+      album: undefined
+
+      source: this.name
+      id: item.id
+
+      linkURL: item.player['default'] + '&hd=1'
+      imageURL: item.thumbnail?.hqDefault or item.thumbnail?.sqDefault
+      audioURL: undefined # we cannot know the direct link to the audio stream
+      audioPreviewURL: undefined
+
+      mimetype: "video/h264"
+      duration: item.duration
+    }
 
   dirtyCheckTitle: (title, query) ->
     # dirty check, filters out the most of the unwanted results

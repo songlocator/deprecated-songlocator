@@ -41,10 +41,8 @@ class MyResolverSet extends ResolverSet
   onResults: (results) ->
     return unless results.results.length > 0
 
-    rankSearchResults(results.results, results.results[0].query)
-
     for result in results.results
-      console.log result.track, result.artist, result.rank
+      console.log result
 
 exports.main = ->
 
@@ -55,7 +53,7 @@ exports.main = ->
     process.exit(1)
 
   config =
-    rdio: {}
+    youtube: {}
 
   resolvers = for name, cfg of config
     Resolver = require("./songlocator-#{name}").Resolver
