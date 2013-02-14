@@ -20,7 +20,9 @@ class Resolver extends BaseResolver
   resolve: (qid, track, artist, album, search = false) ->
     this.request
       url: "http://ex.fm/api/v3/song/search/#{encodeURIComponent(track)}"
-      params: {start: 0, results: if not search then 1 else this.options.searchMaxResults}
+      params:
+        start: 0,
+        results: if not search then 1 else this.options.searchMaxResults
       callback: (error, response) =>
         return if error
         return unless response.results > 0
@@ -39,7 +41,7 @@ class Resolver extends BaseResolver
                 .join(' ')
             else
               song.title
-            
+
             dTitle = dTitle
                 .replace("\u2013","")
                 .replace("  ", " ")
@@ -61,14 +63,20 @@ class Resolver extends BaseResolver
             or (search or artist == "" and album == ""))
 
           result =
+            title: dTitle or title
             artist: song.artist
             album: song.album
-            track: dTitle or title
+
             source: this.name
-            url: song.url
-            extension: "mp3"
-            score: 0.80
-            query: track if search
+            id: song.id
+
+            linkURL: song.sources[0]
+            imageURL: song.image.large or song.image.medium or song.image.small
+            audioURL: song.url
+            audioPreviewURL: undefined
+
+            mimetype: "audio/mpeg"
+            duration: undefined
 
         this.results(qid, if not search then results[0] else results)
 
