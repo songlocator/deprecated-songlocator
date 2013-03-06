@@ -11,6 +11,5 @@ app.css: app.sass
 clean:
 	rm -f app.css index.html
 
-publish:
+publish: all
 	git push origin gh-pages
-
