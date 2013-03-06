@@ -8,9 +8,9 @@ This is hugely inspired by Playdar and then Tomahawk.
 SongLocator aims to provide a set of modular tools ranging from client side
 libraries to API servers to resolve music metadata to audio streams. This should
 allow any application with different requirements to embed music and to play it
-without actually know where it available from.
+without actually knowing where it is available from.
 
-There will be a public API server soon with an easy to use API.
+There will be a public server soon with an easy to use API.
 
 ## Protocol
 
