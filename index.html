@@ -1,0 +1,95 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Backbone.ViewDSL</title>
+<link rel="stylesheet" href="app.css">
+<div class="main">
+<h1>SongLocator</h1>
+
+<p>SongLocator is an architecture for resolving song metadata to audio streams.
+This is hugely inspired by Playdar and then Tomahawk.</p>
+
+<h2>Motivation</h2>
+
+<p>SongLocator aims to provide a set of modular tools ranging from client side
+libraries to API servers to resolve music metadata to audio streams. This should
+allow any application with different requirements to embed music and to play it
+without actually know where it available from.</p>
+
+<p>There will be a public API server soon with an easy to use API.</p>
+
+<h2>Protocol</h2>
+
+<p>Resolver has two methods:</p>
+
+<ul>
+<li><p><code>Resolver.resolve(qid, name, artist, album)</code></p>
+
+<p>Start resolving a song by <code>name</code> and optionally <code>artist</code> and <code>album</code>.</p>
+
+<p>There will be one or more <code>results</code> event triggered when some results are
+available.</p>
+
+<p>Argument <code>qid</code> is an unique identifier of a resolve query. You should use it
+<code>results</code> listener to distinguish results from different queries.</p></li>
+<li><p><code>Resolver.search(qid, query)</code></p>
+
+<p>Start searching for a song using a <code>query</code>.</p>
+
+<p>There will be one or more <code>results</code> event triggered when some results are
+available.</p>
+
+<p>Argument <code>qid</code> is an unique identifier of a search query. You should use it
+<code>results</code> listener to distinguish results from different queries.</p></li>
+</ul>
+
+<p>Resolver implements <code>EventEmmiter</code> interface (same as from Node.js standard
+library) and triggers <code>results</code> event when results from some query is available.</p>
+
+<p>The example usage is:</p>
+
+<pre><code>var qid = // generate qid...
+resolver.search(qid, &#39;andy stott cherry eye&#39;);
+resolver.addListener(&#39;results&#39;, function(results) {
+  if (results.qid !== qid) {
+    return; // results for different query
+  }
+  var result;
+  for (var i = 0; length = results.results.length; i &lt; length; i++) {
+    result = results.results[i];
+    console.log(result.title + &#39; by &#39; + result.artist);
+  }
+});
+</code></pre>
+
+<p>Results have a form of</p>
+
+<pre><code>{
+  qid: &quot;qid736383&quot;,  // qid used for corresponding resolve() or search() call
+  results: [ ...  ]
+}
+</code></pre>
+
+<p>where single result has a form of</p>
+
+<pre><code>{
+  // song metadata
+  title: &quot;Cherry Eye&quot;,
+  artist: &quot;Andy Stott&quot;,
+  album: &quot;Some Album&quot;,    // optional
+
+  // source
+  source: &quot;youtube&quot;,      // source from which stream was resolved from
+  id: &quot;...&quot;,              // id of a stream (dependent on source)
+
+  // links
+  linkURL: &quot;...&quot;,         // optional link for a song, e.g. SoundCloud page
+  imageURL: &quot;...&quot;,        // optional link for a song image/cover
+  audioURL: &quot;...&quot;,        // optional link for a full audio stream
+  audioPreviewURL: &quot;...&quot;, // optional link for a preview audio stream
+
+  // stream metadata
+  mimetype: &quot;...&quot;,        // optional mimetype, e.g. video/h264, audio/mpeg
+  duration: &quot;187&quot;,        // optional duration in seconds
+}
+</code></pre>
+</div>
