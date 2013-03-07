@@ -70,7 +70,7 @@ class Resolver extends BaseResolver
             source: this.name
             id: song.id
 
-            linkURL: song.sources[0]
+            linkURL: song.sources?[0]
             imageURL: song.image.large or song.image.medium or song.image.small
             audioURL: song.url
             audioPreviewURL: undefined
