@@ -40,7 +40,7 @@ class Resolver extends BaseResolver
       found
 
   betterArtwork: (url) ->
-    url.replace('-large', '-t500x500')
+    url.replace('-large', '-t500x500') if url?
 
   resolve: (qid, track, artist, album) ->
     query = "#{artist} #{track}".trim()
